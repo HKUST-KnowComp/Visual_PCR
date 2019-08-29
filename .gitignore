@@ -1,11 +1,9 @@
 *.pyc
 *.so
-*.jsonlines
 char_vocab*.txt
 glove*.txt
 glove*.txt.filtered
 *.hdf5
-data
 logs
 output
 venv
