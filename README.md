@@ -3,9 +3,21 @@
 ## Introduction
 This is the data and the source code for EMNLP 2019 paper "What You See is What You Get: Visual Pronoun Coreference Resolution in Dialogues".
 
+### Abstract
+Grounding pronouns to a visual object it refers to requires complex reasoning from various information sources, especially in conversational scenarios.
+For example, when people in a conversation talk about something all speakers can see (e.g., <b>the statue</b>), they often directly use pronouns (e.g., <b>it</b>) to refer it without previous introduction.
+This fact brings a huge challenge for modern natural language understanding systems, particularly conventional context-based pronoun coreference models.
+To tackle this challenge, in this paper, we formally define the task of visual-aware pronoun coreference resolution (PCR), and introduce VisPro, a large-scale dialogue PCR dataset, to investigate whether and how the visual information can help resolve pronouns in dialogues.
+We then propose a novel visual-aware PCR model, VisCoref, for this task and conduct comprehensive experiments and case studies on our dataset.
+Results demonstrate the importance of the visual information in this PCR case and shows the effectiveness of the proposed model.
+
+<div align=center>
+<img width="500" src="fig/dialog_example.PNG">
+</div>
+
 The readers are welcome to star/fork this repository and use it to train your own model, reproduce our experiment, and follow our future work. Please kindly cite our paper:
 ```
-@inproceedings{zhang2019pronoun,
+@inproceedings{yu2019visualpcr,
   author    = {Xintong Yu and 
                Hongming Zhang and
                Yangqiu Song and
@@ -17,10 +29,17 @@ The readers are welcome to star/fork this repository and use it to train your ow
 }
 ```
 
-## Data
-Download the VisPro dataset from [Data](https://drive.google.com/open?id=13FdN34JCkyyNJxoTYOkp73n5aplJAcDs).
+
+
+## VisPro Dataset
+The train, val, and test split of VisPro dataset are in `data` directory.
 
 ## Usage of VisCoref
+
+### An Example of VisCoref Prediction
+<div align=center>
+<img width="800" src="fig/case_study1.png">
+</div>
 
 ### Getting Started
 * Install python 3.7 and the following requirements: `pip install -r requirements.txt`. Set default python under your system to python 3.7.
