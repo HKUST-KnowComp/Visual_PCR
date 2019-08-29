@@ -41,6 +41,8 @@ The train, val, and test split of VisPro dataset are in `data` directory.
 <img width="800" src="fig/case_study1.png">
 </div>
 
+The figure shows an example of a VisCoref prediction with the image, relevant part of the dialogue record, prediction result, and heatmap of the text-object attention. We indicate the target pronoun with the *underlined italics* font and the candidate mentions with <b>bold</b> font. The row of the heatmap represents the mention in the context and the column means the detected object labels from the image.
+
 ### Getting Started
 * Install python 3.7 and the following requirements: `pip install -r requirements.txt`. Set default python under your system to python 3.7.
 * Download supplementary data for training VisCoref and pretrained model from [Data](https://drive.google.com/open?id=1dSeGz5k57bU2GXCt7sY9krykLvmnbiVx) and extract: `tar -xzvf VisCoref.tar.gz`.
