@@ -1,7 +1,7 @@
 # Visual Pronoun Coreference Resolution in Dialogues
 
 ## Introduction
-This is the data and the source code for EMNLP 2019 paper "What You See is What You Get: Visual Pronoun Coreference Resolution in Dialogues".
+This is the data and the source code for EMNLP 2019 paper "What You See is What You Get: Visual Pronoun Coreference Resolution in Dialogues". [[PAPER](https://www.aclweb.org/anthology/D19-1516.pdf)][[PPT](https://drive.google.com/open?id=1T5911qE1XrToNcMTOhKoAFEiqEgco2Sv)]
 
 ### Abstract
 Grounding pronouns to a visual object it refers to requires complex reasoning from various information sources, especially in conversational scenarios.
