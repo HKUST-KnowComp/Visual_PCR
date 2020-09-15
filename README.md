@@ -86,7 +86,7 @@ Take the first dialog in the test split of VisPro as example:
 Here [0, 1] indicates the phrase of "a firefighter", [3, 4] indicates "his arms", [6, 8] indicates "a parking meter", [10, 10] indicates "another", [12, 12] indicates "past", and [15, 15] indicates "he."
 For the current pronoun "he", "candidate_NPs" means that "a firefighter", "his arms", "a parking meter", "another", "past" all serve as candidates for antecedents, while "correct_caption_NPs" means that only "a firefighter" and "another" are correct antecedents.
 
-The doc_key "dl:train:152" means that it is the 152th selected dialog from the train split of VisDial.
+The "doc_key" means that it is the 152th selected dialog from the train split of VisDial.
 
 
 ## Usage of VisCoref
