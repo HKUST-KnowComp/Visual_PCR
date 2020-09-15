@@ -46,7 +46,7 @@ Mentions in the same coreference cluster are in the same color.
 Each line contains the annotation of one dialog.
 ```
 {
-    "doc_key": str, # e.g. in "dl:train:0", "dl" indicates "dialog" genre (to be compatible with the CoNLL format), "train" means that it is from the train split of VisDial (note that the split of VisPro is not the same as VisDial), "0" is the original index in the selected VisDial dialogs
+    "doc_key": str, # e.g. in "dl:train:0", "dl" indicates "dialog" genre to be compatible with the CoNLL format, and it is the same for all dialogs in VisPro; "train" means that it is from the train split of VisDial (note that the split of VisPro is not the same as VisDial); "0" is the original index in the randomly selected 5,000 VisDial dialogs; basically this key serves as an index of the dialog
     "image_file": str, # the image filename of the dialog
     "object_detection": list, # the ids of object labels from 80 categories of MSCOCO object detection challenge
     "sentences": list,
@@ -75,15 +75,18 @@ Text spans are denoted as [index_start, index_end] of their positions in the who
 
 `"not_discussed"` indicates whether the antecedents of the pronoun is discussed in the dialogue text.
 
-For example:
+Take the first dialog in the test split of VisPro as example:
 ```
 {
   "pronoun_info": [{"current_pronoun": [15, 15], "candidate_NPs": [[0, 1], [3, 4], [6, 8], [10, 10], [12, 12]], "reference_type": 0, "correct_NPs": [[0, 1], [10, 10]], "not_discussed": false}]，
-  "sentences": [["A", "firefighter", "rests", "his", "arm", "on", "a", "parking", "meter", "as", "another", "walks", "past", "."], ["Is", "he", "in", "his", "gear", "?"]]
+  "sentences": [["A", "firefighter", "rests", "his", "arm", "on", "a", "parking", "meter", "as", "another", "walks", "past", "."], ["Is", "he", "in", "his", "gear", "?"]],
+  "doc_key": "dl:train:152"
 }
 ```
 Here [0, 1] indicates the phrase of "a firefighter", [3, 4] indicates "his arms", [6, 8] indicates "a parking meter", [10, 10] indicates "another", [12, 12] indicates "past", and [15, 15] indicates "he."
 For the current pronoun "he", "candidate_NPs" means that "a firefighter", "his arms", "a parking meter", "another", "past" all serve as candidates for antecedents, while "correct_caption_NPs" means that only "a firefighter" and "another" are correct antecedents.
+
+The doc_key "dl:train:152" means that it is the 152th selected dialog from the train split of VisDial.
 
 
 ## Usage of VisCoref
