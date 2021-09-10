@@ -17,15 +17,20 @@ Results demonstrate the importance of the visual information in this PCR case an
 
 The readers are welcome to star/fork this repository and use it to train your own model, reproduce our experiment, and follow our future work. Please kindly cite our paper:
 ```
-@inproceedings{yu2019visualpcr,
-  author    = {Xintong Yu and 
+@inproceedings{DBLP:conf/emnlp/YuZSSZ19,
+  author    = {Xintong Yu and
                Hongming Zhang and
                Yangqiu Song and
                Yan Song and
                Changshui Zhang},
-  title     = {What You See is What You Get: Visual Pronoun Coreference Resolution in Dialogues},
-  booktitle = {Proceedings of EMNLP, 2019},
-  year      = {2019}
+  title     = {What You See is What You Get: Visual Pronoun Coreference Resolution
+               in Dialogues},
+  booktitle = {Proceedings of {EMNLP-IJCNLP} 2019},
+  pages     = {5122--5131},
+  publisher = {Association for Computational Linguistics},
+  year      = {2019},
+  url       = {https://doi.org/10.18653/v1/D19-1516},
+  doi       = {10.18653/v1/D19-1516},
 }
 ```
 
@@ -111,6 +116,7 @@ The figure shows an example of a VisCoref prediction with the image, the relevan
 * Experiment configurations are found in `experiments.conf`
 * Choose an experiment that you would like to run, e.g. `best`
 * For training and prediction, set the `GPU` environment variable, which the code treats as shorthand for `CUDA_VISIBLE_DEVICES`.
+* (optional) For the "End-to-end + Visual" baseline, first download images from [VisDial](https://visualdialog.org/data) to the `data/images` folder, then run `python get_im_fc.py` to get image features.
 * Training: `python train.py <experiment>`
 * Results are stored in the `logs` directory and can be viewed via TensorBoard.
 * Prediction: `python predict.py <experiment>`
