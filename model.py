@@ -34,6 +34,13 @@ class VisCoref(object):
       self.lm_obj_file = h5py.File(self.config["lm_obj_path"], "r")
       self.im_emb_size = self.config["im_emb_size"]
 
+    # visual baseline
+    self.use_im_fc = self.config["use_im_fc"]
+    if self.use_im_fc:
+      self.im_fc_file = h5py.File(self.config["im_fc_feat_path"], "r")
+    self.im_fc_feat_size = self.config["im_fc_feat_size"]
+    self.im_fc_emb_size = self.config["im_fc_emb_size"]
+
     self.vis_weight = self.config["vis_weight"]
     self.num_cdd_pool = self.config["num_cdd_pool"]
     self.lm_cdd_file = h5py.File(self.config["lm_cdd_path"], "r")
@@ -72,6 +79,7 @@ class VisCoref(object):
     input_props.append((tf.float32, [None, None, self.lm_size, self.lm_layers])) # LM embeddings for obj.
     input_props.append((tf.string, [None, None])) # Tokens obj.      
     input_props.append((tf.bool, [])) # Has object.
+    input_props.append((tf.float32, [self.im_fc_feat_size])) # Image features.
 
     self.queue_input_tensors = [tf.placeholder(dtype, shape) for dtype, shape in input_props]
     dtypes, shapes = zip(*input_props)
@@ -165,6 +173,13 @@ class VisCoref(object):
 
     return lm_emb_objs
 
+  def load_im_feat(self, doc_key):
+    if self.im_fc_file is None:
+      return np.zeros(self.im_fc_feat_size)
+    file_key = doc_key.replace("/", ":")
+    im_feat = self.im_fc_file[file_key][:]
+    return im_feat
+
   def tensorize_mentions(self, mentions):
     if len(mentions) > 0:
       starts, ends = zip(*mentions)
@@ -251,6 +266,10 @@ class VisCoref(object):
       for len_cdd in text_len_cdd:
         example["speakers"].append(['caption',] * len_cdd)
 
+    doc_key = example["doc_key"]
+    if self.use_im_fc:
+      im_feat = self.load_im_feat(doc_key)
+
     if self.use_im:
       detections = example["object_detection"]
       has_obj = len(detections) > 0
@@ -275,7 +294,6 @@ class VisCoref(object):
     speaker_dict = { s:i for i,s in enumerate(set(speakers)) }
     speaker_ids = np.array([speaker_dict[s] for s in speakers])
 
-    doc_key = example["doc_key"]
     caption_candidates = example["correct_caption_NPs"]
     if len(caption_candidates) == 0:
       # add 1 NP to avoid empty candidates
@@ -295,6 +313,10 @@ class VisCoref(object):
                              np.zeros([0, 0, self.head_embeddings.size]),
                              np.zeros([0, 0, 1]), np.zeros([0, 0, self.lm_size, self.lm_layers]),
                              np.zeros([0, 1]), False])
+    if self.use_im_fc:
+      example_tensors.append(im_feat)
+    else:
+      example_tensors.append(np.zeros(self.config["im_fc_feat_size"]))
 
       
     return example_tensors
@@ -341,10 +363,12 @@ class VisCoref(object):
     top_fast_antecedent_scores += tf.log(tf.to_float(top_antecedents_mask)) # [k, c]
     return top_antecedents, top_antecedents_mask, top_fast_antecedent_scores, top_antecedent_offsets
 
-  def get_predictions_and_loss(self, tokens, context_word_emb, head_word_emb, lm_emb_cap, lm_emb_dial, char_index, text_len, speaker_ids, is_training, gold_starts, gold_ends, cluster_ids, candidate_starts_caption, candidate_ends_caption, text_len_cdd, context_word_emb_cdd, head_word_emb_cdd, char_index_cdd, lm_emb_cdd, tokens_cdd, text_len_obj, context_word_emb_obj, head_word_emb_obj, char_index_obj, lm_emb_obj, tokens_obj, has_obj):
+  def get_predictions_and_loss(self, tokens, context_word_emb, head_word_emb, lm_emb_cap, lm_emb_dial, char_index, text_len, speaker_ids, is_training, gold_starts, gold_ends, cluster_ids, candidate_starts_caption, candidate_ends_caption, text_len_cdd, context_word_emb_cdd, head_word_emb_cdd, char_index_cdd, lm_emb_cdd, tokens_cdd, text_len_obj, context_word_emb_obj, head_word_emb_obj, char_index_obj, lm_emb_obj, tokens_obj, has_obj, im_feat):
     self.dropout = self.get_dropout(self.config["dropout_rate"], is_training)
     self.lexical_dropout = self.get_dropout(self.config["lexical_dropout_rate"], is_training)
     self.lstm_dropout = self.get_dropout(self.config["lstm_dropout_rate"], is_training)
+    if self.use_im_fc:
+      self.im_dropout = self.get_dropout(self.config["im_dropout_rate"], is_training)
 
     # for all sentences including caption
     num_sentences = tf.shape(context_word_emb)[0]
@@ -562,10 +586,10 @@ class VisCoref(object):
       with tf.variable_scope("coref_layer", reuse=(i > 0)):
         top_antecedent_emb = tf.gather(top_span_emb, top_antecedents) # [k, c, emb]
         if self.use_im:
-          top_antecedent_scores_text, top_antecedent_scores_im = self.get_slow_antecedent_scores(top_span_emb, top_antecedents, top_antecedent_emb, top_antecedent_offsets, top_span_speaker_ids, att_grid, has_obj) # [k, c]
+          top_antecedent_scores_text, top_antecedent_scores_im = self.get_slow_antecedent_scores(top_span_emb, top_antecedents, top_antecedent_emb, top_antecedent_offsets, top_span_speaker_ids, im_feat, att_grid, has_obj) # [k, c]
           top_antecedent_scores = top_fast_antecedent_scores + (1 - self.vis_weight) * top_antecedent_scores_text + self.vis_weight * top_antecedent_scores_im
         else:
-          top_antecedent_scores = top_fast_antecedent_scores + self.get_slow_antecedent_scores(top_span_emb, top_antecedents, top_antecedent_emb, top_antecedent_offsets, top_span_speaker_ids) # [k, c]
+          top_antecedent_scores = top_fast_antecedent_scores + self.get_slow_antecedent_scores(top_span_emb, top_antecedents, top_antecedent_emb, top_antecedent_offsets, top_span_speaker_ids, im_feat) # [k, c]
         top_antecedent_weights = tf.nn.softmax(tf.concat([dummy_scores, top_antecedent_scores], 1)) # [k, c + 1]
         top_antecedent_emb = tf.concat([tf.expand_dims(top_span_emb, 1), top_antecedent_emb], 1) # [k, c + 1, emb]
         attended_span_emb = tf.reduce_sum(tf.expand_dims(top_antecedent_weights, 2) * top_antecedent_emb, 1) # [k, emb]
@@ -714,7 +738,7 @@ class VisCoref(object):
     combined_idx = use_identity * distances + (1 - use_identity) * logspace_idx
     return tf.clip_by_value(combined_idx, 0, 9)
 
-  def get_slow_antecedent_scores(self, top_span_emb, top_antecedents, top_antecedent_emb, top_antecedent_offsets, top_span_speaker_ids, att_grid=None, has_obj=None):
+  def get_slow_antecedent_scores(self, top_span_emb, top_antecedents, top_antecedent_emb, top_antecedent_offsets, top_span_speaker_ids, im_feat, att_grid=None, has_obj=None):
     k = util.shape(top_span_emb, 0)
     c = util.shape(top_antecedents, 1)
 
@@ -725,6 +749,17 @@ class VisCoref(object):
       same_speaker = tf.equal(tf.expand_dims(top_span_speaker_ids, 1), top_antecedent_speaker_ids) # [k, c]
       speaker_pair_emb = tf.gather(tf.get_variable("same_speaker_emb", [2, self.config["feature_size"]]), tf.to_int32(same_speaker)) # [k, c, emb]
       feature_emb_list.append(speaker_pair_emb)
+
+    if self.use_im_fc:
+      im_emb = tf.expand_dims(im_feat, 0)
+      im_emb = tf.nn.dropout(im_emb, self.im_dropout)
+      if self.config["im_layer"] > 0:
+        for i in range(self.config["im_layer"]):
+          im_weights = tf.get_variable("im_weights_{}".format(i), [util.shape(im_emb, 1), self.im_fc_emb_size], initializer=None)
+          im_bias = tf.get_variable("im_bias_{}".format(i), [self.im_fc_emb_size], initializer=None)
+          im_emb = tf.nn.xw_plus_b(im_emb, im_weights, im_bias)
+      tiled_im_emb = tf.tile(tf.expand_dims(im_emb, 0), [k, c, 1]) # [k, c, emb]
+      feature_emb_list.append(tiled_im_emb)
 
     if self.config["use_features"]:
       antecedent_distance_buckets = self.bucket_distance(top_antecedent_offsets) # [k, c]
